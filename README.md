@@ -29,7 +29,7 @@ int main() {
 	xtime::timestamp_t timestamp = xtime::get_timestamp(7,5,2019,6,53,00); 
 	
 	/* это длительность опциона в секундах 
-	 * (здесь 3 минуты - минимальная длительность у брокера [intrade.bar](www.intrade.bar/67204)
+	 * (здесь 3 минуты - минимальная длительность у брокера intrade.bar
 	 */
 	int duration = 180;
 	
@@ -59,3 +59,7 @@ int main() {
 ### Полезные ссылки
 
 * Статистика процентов выплат брокера *OlympTrade*: [https://github.com/NewYaroslav/olymptrade_historical_data](https://github.com/NewYaroslav/olymptrade_historical_data)
+* Статистика процентов выплат брокера *Binary*: [https://github.com/NewYaroslav/binary_historical_data](https://github.com/NewYaroslav/binary_historical_data)
+* Котировки брокера *Binary*: [https://github.com/NewYaroslav/binary.com_history_quotes](https://github.com/NewYaroslav/binary.com_history_quotes)
+
+
