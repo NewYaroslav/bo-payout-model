@@ -1,303 +1,215 @@
+#ifndef PAYOUT_MODEL_INTRADE_BAR_H_INCLUDED
+#define PAYOUT_MODEL_INTRADE_BAR_H_INCLUDED
+
 #include <vector>
 #include <string>
-#include <map>
-//------------------------------------------------------------------------------------------------------
-namespace payout_model
-{
-	///Список типов причин отсутствия выплат
-	enum PayoutCancelType{
-			OK=0,							///< Оплата произведена
-			DAYOFF=1,						///< Выходной день или праздник
-			NIGHTHOURS=2, 					///< Ночное время, когда брокер не принмает ставки
-			BEGINEVENINGHOUR=3, 			///< Первые минуты в начале часа вечером (либо последняя минута в конце часа)
-			TOOLITTLETIME=4, 				///< Слишком короткое время экспирации
-			TOOMUCHTIME=5, 					///< Слишком длинное время экспирации
-			CURRENCYPAIRISMISSING=6, 		///< Отсутствует валютная пара с указанным индексом
-			TOOLITTLEMONEY=7				///< Слишком низкая ставка
+#include <array>
+#include "xtime.hpp"
+
+namespace payout_model {
+	/// РЎРїРёСЃРѕРє С‚РёРїРѕРІ РїСЂРёС‡РёРЅ РѕС‚СЃСѓС‚СЃС‚РІРёСЏ РІС‹РїР»Р°С‚
+	enum PayoutCancelType {
+        OK = 0,						    ///< РћРїР»Р°С‚Р° РїСЂРѕРёР·РІРµРґРµРЅР°
+        DAY_OFF = -1,				    ///< Р’С‹С…РѕРґРЅРѕР№ РґРµРЅСЊ РёР»Рё РїСЂР°Р·РґРЅРёРє
+        NIGHT_HOURS = -2, 			    ///< РќРѕС‡РЅРѕРµ РІСЂРµРјСЏ, РєРѕРіРґР° Р±СЂРѕРєРµСЂ РЅРµ РїСЂРёРЅРјР°РµС‚ СЃС‚Р°РІРєРё
+        BEGIN_EVENING_HOUR = -3, 		///< РџРµСЂРІС‹Рµ РјРёРЅСѓС‚С‹ РІ РЅР°С‡Р°Р»Рµ С‡Р°СЃР° РІРµС‡РµСЂРѕРј (Р»РёР±Рѕ РїРѕСЃР»РµРґРЅСЏСЏ РјРёРЅСѓС‚Р° РІ РєРѕРЅС†Рµ С‡Р°СЃР°)
+        TOO_LITTLE_TIME = -4, 		    ///< РЎР»РёС€РєРѕРј РєРѕСЂРѕС‚РєРѕРµ РІСЂРµРјСЏ СЌРєСЃРїРёСЂР°С†РёРё
+        TOO_MUCH_TIME = -5,             ///< РЎР»РёС€РєРѕРј РґР»РёРЅРЅРѕРµ РІСЂРµРјСЏ СЌРєСЃРїРёСЂР°С†РёРё
+        CURRENCY_PAIR_IS_MISSING = -6,  ///< РћС‚СЃСѓС‚СЃС‚РІСѓРµС‚ РІР°Р»СЋС‚РЅР°СЏ РїР°СЂР° СЃ СѓРєР°Р·Р°РЅРЅС‹Рј РёРЅРґРµРєСЃРѕРј
+        TOO_LITTLE_MONEY = -7,		    ///< РЎР»РёС€РєРѕРј РЅРёР·РєР°СЏ СЃС‚Р°РІРєР°
 	};
-//------------------------------------------------------------------------------------------------------
-	class IntradeBar
-	{
-		private:
-			std::string currency_name;								///< Наименование валюты счета. Как правило, USD или RUB
-			static std::map<int, std::string> currency_pairs;       ///< Список доступных валютных пар брокера IntradeBar в формате <ключ, название>
-		
-		public:
-		
-	
-			/** \brief Получить процент выплат
 
-			* Проценты выплат варьируются обычно от 0 до 1.0, где 1.0 соответствует 100% выплате брокера
-			* \param[out] payout процент выплат
-			* \param[in] timestamp временную метку unix времени (GMT)
-			* \param[in] duration длительность опциона в секундах
-			* \param[in] currency_pair_indx  номер валютной пары из списка валютных пар брокера
-			* \param[in] amount размер ставки бинарного опциона
-			* \return состояние выплаты (0 в случае успеха, иначе см. PayoutCancelType)
-			*/
-			int get_payout(double &payout, 
-							const unsigned long long timestamp, 
-							const int duration, 
-							const int currency_pair_indx, 
-							const double amount);
-			
-			
-			/** \brief Получить имя валютной пары по ее номеру
-
-			* \param[in] currency_pair_indx  номер валютной пары из списка валютных пар брокера
-			* \return имя валютной пары либо пустую строку, если указанный индекс отсутствует в списке валютных пар
-			*/
-			std::string get_currecy_pair_name(const int currency_pair_indx);
-			
-			
-			///Получить список всех валютных пар брокера
-			std::vector<std::string> get_currecy_pair_list();
-			
-			/** 
-			  * В конструкторе класса IntradeBar определяется валюта счета.
-			  * В качестве валюты счета по умолчанию используется RUB
-			*/
-			IntradeBar()
-			{
-				currency_name="RUB";
-			}
-		
-			IntradeBar(std::string _currency_name)
-			{
-				currency_name=_currency_name;
-			}
-				
-			~IntradeBar()
-			{
-			
-			}
-		
+	/// РЎРїРёСЃРѕРє РІР°Р»СЋС‚ СЃС‡РµС‚Р°
+	enum AccountCurrencyName {
+        CURRENCY_RUB = 0,       ///< Р СѓР±Р»РµРІР°СЏ РІР°Р»СЋС‚Р° СЃС‡РµС‚Р°
+        CURRENCY_USD = 1,       ///< Р”РѕР»Р»Р°СЂРѕРІС‹Р№ СЃС‡РµС‚
 	};
-	
-	std::map<int, std::string> IntradeBar::currency_pairs={{0,"EURUSD"},{1,"USDJPY"},{2,"GBPUSD"},{3,"USDCHF"},
-																		{4,"USDCAD"},{5,"EURJPY"},{6,"AUDUSD"},{7,"NZDUSD"},
-																		{8,"EURGBP"},{9,"EURCHF"},{10,"AUDJPY"},{11,"GBPJPY"},
-																		{12,"CHFJPY"},{13,"EURCAD"},{14,"AUDCAD"},{15,"CADJPY"},
-																		{16,"NZDJPY"},{17,"AUDNZD"},{18,"GBPAUD"},{19,"EURAUD"},
-																		{20,"GBPCHF"},{21,"EURNZD"},{22,"AUDCHF"},{23,"GBPNZD"},
-																		{24,"USDRUB"},{25,"GBPCAD"},{26,"GC"}};
-	
-	/** \brief Получить процент выплат
 
-			* Проценты выплат варьируются обычно от 0 до 1.0, где 1.0 соответствует 100% выплате брокера
-			* \param[out] payout процент выплат
-			* \param[in] timestamp временную метку unix времени (GMT)
-			* \param[in] duration длительность опциона в секундах
-			* \param[in] currency_pair_indx  номер валютной пары из списка валютных пар брокера
-			* \param[in] amount размер ставки бинарного опциона
-			* \return состояние выплаты (0 в случае успеха, иначе см. PayoutCancelType)
-	*/
-	inline int IntradeBar::get_payout(double &payout, 
-										const unsigned long long timestamp, 
-										const int duration, 
-										const int currency_pair_indx, 
-										const double amount)
-	{
-		struct tm *operation_time_in_tm;						///< Время начала операции по Гринвичу, представленное в формате временной структуры tm
+	const int INTRADE_BAR_CURRENCY_PAIRS = 27;  /**< РљРѕР»РёС‡РµСЃС‚РІРѕ С‚РѕСЂРіРѕРІС‹С… СЃРёРјРІРѕР»РѕРІ */
+    static const std::array<std::string, INTRADE_BAR_CURRENCY_PAIRS> intrade_bar_currency_pairs = {
+        "EURUSD","USDJPY","GBPUSD","USDCHF",
+        "USDCAD","EURJPY","AUDUSD","NZDUSD",
+        "EURGBP","EURCHF","AUDJPY","GBPJPY",
+        "CHFJPY","EURCAD","AUDCAD","CADJPY",
+        "NZDJPY","AUDNZD","GBPAUD","EURAUD",
+        "GBPCHF","EURNZD","AUDCHF","GBPNZD",
+        "USDRUB","GBPCAD","GC",
+    }; ///< РЎРїРёСЃРѕРє РґРѕСЃС‚СѓРїРЅС‹С… РІР°Р»СЋС‚РЅС‹С… РїР°СЂ Р±СЂРѕРєРµСЂР° IntradeBar
 
-		time_t operation_time_in_time_t=timestamp;				///< Время начала операции в формате time_t, представляющщее собой временную метку unix времени (GMT)
-		
-		/*
-		 *Функция gmtime позволяет получить указатель на структуру tm, содержащую календарное время в разделенной на компоненты форме. 
-		 * В качестве параметра в функцию передается указатель на временную метку времени GMT, для которой необходимо осуществить преобразование
-		 */
-		operation_time_in_tm=gmtime(&operation_time_in_time_t);
-		
-		/*
-		 *year - год проведения операции
-		 *tm_year - соедержит количество лет от 1900 года до даты, хранящейся в струкуре
-		 */
-		int year=operation_time_in_tm->tm_year+1900;	
-		
-		/*
-		 * month - месяц проведения операции
-		 * tm_month - соедержит количество месяцев с 1 января года tm_year до даты, хранящейся в струкуре
-		 */
-		int month=operation_time_in_tm->tm_mon+1;
-		
-		// day - число месяца
-		int day=operation_time_in_tm->tm_mday;
-		
-		// hour - количество часов от 0 до 23
-		int hour=operation_time_in_tm->tm_hour;
-		int minute=operation_time_in_tm->tm_min;
-		int second=operation_time_in_tm->tm_sec;
-		
-		// weekday - день недели от 0 до 6, начиная с воскресенья 
-		int weekday=operation_time_in_tm->tm_wday;
-		
-		std::string currency_pair_name; //Наименование валютной парі
-				
-		// Если операция выполнена в субботу, воскресенье, 1 января или 25 августа
-		// Выплата отсутствует payout=0
-		// Возврат кода причины отсутствия выплаты PayoutCancelType::DAYOFF 
-		if(weekday==6||weekday==0||(day==1&&month==1)||(day==25&&month==12))
-		{
-			payout=0;
-			return PayoutCancelType::DAYOFF;
-		}//if
-		
-		// Если операция выполнена после 21:00 по Гринвичу
-		// Выплата отсутствует payout=0
-		// Возврат кода причины отсутствия выплаты PayoutCancelType::NIGHTHOURS 
-		if(hour>=21)
-		{
-			payout=0;
-			return PayoutCancelType::NIGHTHOURS;
-		}//if
-		
-		// Если операция выполнена после с 14:00 до 20:00 по Гринвичу в две первые или последнюю минуту часа
-		// Выплата отсутствует payout=0
-		// Возврат кода причины отсутствия выплаты PayoutCancelType::BEGINEVENINGHOUR 
-		if(((hour>=14&&hour<=19)&&(minute==59||minute==0||minute==1))||
-			(hour==13&&minute==59)||(hour==21&&(minute==0||minute==1)))
-		{
-			payout=0;
-			return PayoutCancelType::BEGINEVENINGHOUR;
-		}//if
-		
-		// Если продолжительность экспирации меньше 3 минут (180 секунд)
-		// Выплата отсутствует payout=0
-		// Возврат кода причины отсутствия выплаты PayoutCancelType::BEGINEVENINGHOUR 
-		if(duration<180)
-		{
-			payout=0;
-			return PayoutCancelType::TOOLITTLETIME;
-		}//if
-		
-		// Если продолжительность экспирации больше 500 минут (30000 секунд)
-		// Выплата отсутствует payout=0
-		// Возврат кода причины отсутствия выплаты PayoutCancelType::TOOMUCHTIME 
-		if(duration>30000)
-		{
-			payout=0;
-			return PayoutCancelType::TOOMUCHTIME;
-		}//if
-		
-		// Получение имени валютной пары, участвующей в операции по ее индексу
-		// Соотвествие индексов валютных пар и их имен определено множеством currency_pairs
-		
-		currency_pair_name=get_currecy_pair_name(currency_pair_indx);
-		
-		// Если метод get_currecy_pair_name вернул пустую строку, т.е. в списке отсутствует валютная пара с индексом currency_pair_indx
-		// Выплата отсутствует payout=0
-		// Возврат кода причины отсутствия выплаты PayoutCancelType::CURRENCYPAIRISMISSING 
-		if(currency_pair_name.empty())
-		{
-			payout=0;
-			return PayoutCancelType::CURRENCYPAIRISMISSING;
+	class IntradeBar {
+        private:
+        int currency_name;								    ///< РќР°РёРјРµРЅРѕРІР°РЅРёРµ РІР°Р»СЋС‚С‹ СЃС‡РµС‚Р°. РљР°Рє РїСЂР°РІРёР»Рѕ, USD РёР»Рё RUB
+        bool is_use_latest_broker_terms;
+
+        public:
+
+        /** \brief РџРѕР»СѓС‡РёС‚СЊ РїСЂРѕС†РµРЅС‚ РІС‹РїР»Р°С‚
+         * РџСЂРѕС†РµРЅС‚С‹ РІС‹РїР»Р°С‚ РІР°СЂСЊРёСЂСѓСЋС‚СЃСЏ РѕР±С‹С‡РЅРѕ РѕС‚ 0 РґРѕ 1.0, РіРґРµ 1.0 СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓРµС‚ 100% РІС‹РїР»Р°С‚Рµ Р±СЂРѕРєРµСЂР°
+         * \param[out] payout РїСЂРѕС†РµРЅС‚ РІС‹РїР»Р°С‚
+         * \param[in] timestamp РІСЂРµРјРµРЅРЅСѓСЋ РјРµС‚РєСѓ unix РІСЂРµРјРµРЅРё (GMT)
+         * \param[in] duration РґР»РёС‚РµР»СЊРЅРѕСЃС‚СЊ РѕРїС†РёРѕРЅР° РІ СЃРµРєСѓРЅРґР°С…
+         * \param[in] currency_pair_indx  РЅРѕРјРµСЂ РІР°Р»СЋС‚РЅРѕР№ РїР°СЂС‹ РёР· СЃРїРёСЃРєР° РІР°Р»СЋС‚РЅС‹С… РїР°СЂ Р±СЂРѕРєРµСЂР°
+         * \param[in] amount СЂР°Р·РјРµСЂ СЃС‚Р°РІРєРё Р±РёРЅР°СЂРЅРѕРіРѕ РѕРїС†РёРѕРЅР°
+         * \return СЃРѕСЃС‚РѕСЏРЅРёРµ РІС‹РїР»Р°С‚С‹ (0 РІ СЃР»СѓС‡Р°Рµ СѓСЃРїРµС…Р°, РёРЅР°С‡Рµ СЃРј. PayoutCancelType)
+         */
+        int get_payout( double &payout,
+                        const xtime::timestamp_t &timestamp,
+                        const int &duration,
+                        const int &currency_pair_indx,
+                        const double &amount);
+
+        /** \brief РџРѕР»СѓС‡РёС‚СЊ РёРјСЏ РІР°Р»СЋС‚РЅРѕР№ РїР°СЂС‹ РїРѕ РµРµ РЅРѕРјРµСЂСѓ
+         * \param[in] currency_pair_indx  РЅРѕРјРµСЂ РІР°Р»СЋС‚РЅРѕР№ РїР°СЂС‹ РёР· СЃРїРёСЃРєР° РІР°Р»СЋС‚РЅС‹С… РїР°СЂ Р±СЂРѕРєРµСЂР°
+         * \return РёРјСЏ РІР°Р»СЋС‚РЅРѕР№ РїР°СЂС‹ Р»РёР±Рѕ РїСѓСЃС‚СѓСЋ СЃС‚СЂРѕРєСѓ, РµСЃР»Рё СѓРєР°Р·Р°РЅРЅС‹Р№ РёРЅРґРµРєСЃ РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ РІ СЃРїРёСЃРєРµ РІР°Р»СЋС‚РЅС‹С… РїР°СЂ
+         */
+        std::string get_currecy_pair_name(const int &currency_pair_indx);
+
+        /** \brief РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР° РјРѕРґРµР»Рё РїСЂРѕС†РµРЅС‚РѕРІ РІС‹РїР»Р°С‚ Р±СЂРѕРєРµСЂР° intrade.bar
+         * \param user_currency_name Р’Р°Р»СЋС‚Р° СЃС‡РµС‚Р°, РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ RUB
+         * \param is_latest_broker_terms РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РїРѕСЃР»РґРµРЅРёРµ СѓСЃР»РѕРІРёСЏ Р±СЂРѕРєРµСЂР°. Р­С‚РѕС‚ РїР°СЂР°РјРµС‚СЂ РїРѕРІС‹С€Р°РµС‚ РїСЂРѕС†РµРЅС‚ РІС‹РїР»Р°С‚ РЅР° РІСЃРµРј СѓС‡Р°СЃС‚РєРµ РёСЃС‚РѕСЂРёРё
+         */
+        IntradeBar(const int &user_currency_name = CURRENCY_RUB, const bool is_latest_broker_terms = false) {
+            currency_name = user_currency_name;
+            is_use_latest_broker_terms = is_latest_broker_terms;
+        }
+
+        ~IntradeBar() {}
+	};
+
+	/** \brief РџРѕР»СѓС‡РёС‚СЊ РїСЂРѕС†РµРЅС‚ РІС‹РїР»Р°С‚
+     * РџСЂРѕС†РµРЅС‚С‹ РІС‹РїР»Р°С‚ РІР°СЂСЊРёСЂСѓСЋС‚СЃСЏ РѕР±С‹С‡РЅРѕ РѕС‚ 0 РґРѕ 1.0, РіРґРµ 1.0 СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓРµС‚ 100% РІС‹РїР»Р°С‚Рµ Р±СЂРѕРєРµСЂР°
+     * \param[out] payout РїСЂРѕС†РµРЅС‚ РІС‹РїР»Р°С‚
+     * \param[in] timestamp РІСЂРµРјРµРЅРЅСѓСЋ РјРµС‚РєСѓ unix РІСЂРµРјРµРЅРё (GMT)
+     * \param[in] duration РґР»РёС‚РµР»СЊРЅРѕСЃС‚СЊ РѕРїС†РёРѕРЅР° РІ СЃРµРєСѓРЅРґР°С…
+     * \param[in] currency_pair_indx  РЅРѕРјРµСЂ РІР°Р»СЋС‚РЅРѕР№ РїР°СЂС‹ РёР· СЃРїРёСЃРєР° РІР°Р»СЋС‚РЅС‹С… РїР°СЂ Р±СЂРѕРєРµСЂР°
+     * \param[in] amount СЂР°Р·РјРµСЂ СЃС‚Р°РІРєРё Р±РёРЅР°СЂРЅРѕРіРѕ РѕРїС†РёРѕРЅР°
+     * \return СЃРѕСЃС‚РѕСЏРЅРёРµ РІС‹РїР»Р°С‚С‹ (0 РІ СЃР»СѓС‡Р°Рµ СѓСЃРїРµС…Р°, РёРЅР°С‡Рµ СЃРј. PayoutCancelType)
+	 */
+	inline int IntradeBar::get_payout(  double &payout,
+										const xtime::timestamp_t &timestamp,
+										const int &duration,
+										const int &currency_pair_indx,
+										const double &amount) {
+        xtime::DateTime iDateTime(timestamp);
+
+		//int year = xtime::get_year(timestamp);
+		//int month = xtime::get_month_year(timestamp);
+        //int day = xtime::get_month_day(timestamp);
+		//int hour= xtime::get_hour_day(timestamp);
+		//int minute = operation_time_in_tm->tm_min;
+		//int second = operation_time_in_tm->tm_sec;
+
+		int weekday = iDateTime.get_weekday();
+
+		// Р•СЃР»Рё РѕРїРµСЂР°С†РёСЏ РІС‹РїРѕР»РЅРµРЅР° РІ СЃСѓР±Р±РѕС‚Сѓ, РІРѕСЃРєСЂРµСЃРµРЅСЊРµ, 1 СЏРЅРІР°СЂСЏ РёР»Рё 25 Р°РІРіСѓСЃС‚Р°
+		// Р’С‹РїР»Р°С‚Р° РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ payout=0
+		// Р’РѕР·РІСЂР°С‚ РєРѕРґР° РїСЂРёС‡РёРЅС‹ РѕС‚СЃСѓС‚СЃС‚РІРёСЏ РІС‹РїР»Р°С‚С‹ PayoutCancelType::DAYOFF
+		if( weekday == xtime::SUN || weekday == xtime::SAT ||
+            (iDateTime.day == 1 && iDateTime.month == xtime::JAN) ||
+            (iDateTime.day == 25 && iDateTime.month == xtime::DEC)) {
+			payout = 0.0;
+			return PayoutCancelType::DAY_OFF;
 		}//if
 
-		// Если указана сумма меньшая либо равная 0
-		// Выплата отсутствует payout=0
-		// Возврат кода причины отсутствия выплаты PayoutCancelType::TOOLITTLEMONEY 
-		if(amount<=0)
-		{
+		// Р•СЃР»Рё РѕРїРµСЂР°С†РёСЏ РІС‹РїРѕР»РЅРµРЅР° РїРѕСЃР»Рµ 21:00 РїРѕ Р“СЂРёРЅРІРёС‡Сѓ
+		// Р’С‹РїР»Р°С‚Р° РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ payout=0
+		// Р’РѕР·РІСЂР°С‚ РєРѕРґР° РїСЂРёС‡РёРЅС‹ РѕС‚СЃСѓС‚СЃС‚РІРёСЏ РІС‹РїР»Р°С‚С‹ PayoutCancelType::NIGHTHOURS
+		if(iDateTime.hour >= 21) {
+			payout = 0.0;
+			return PayoutCancelType::NIGHT_HOURS;
+		}//if
+
+		// Р•СЃР»Рё РѕРїРµСЂР°С†РёСЏ РІС‹РїРѕР»РЅРµРЅР° РїРѕСЃР»Рµ СЃ 14:00 РґРѕ 20:00 РїРѕ Р“СЂРёРЅРІРёС‡Сѓ РІ РґРІРµ РїРµСЂРІС‹Рµ РёР»Рё РїРѕСЃР»РµРґРЅСЋСЋ РјРёРЅСѓС‚Сѓ С‡Р°СЃР°
+		// Р’С‹РїР»Р°С‚Р° РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ payout=0
+		// Р’РѕР·РІСЂР°С‚ РєРѕРґР° РїСЂРёС‡РёРЅС‹ РѕС‚СЃСѓС‚СЃС‚РІРёСЏ РІС‹РїР»Р°С‚С‹ PayoutCancelType::BEGINEVENINGHOUR
+		if(((iDateTime.hour >= 14 && iDateTime.hour <= 19) &&
+            (iDateTime.minutes == 59 || iDateTime.minutes == 0 || iDateTime.minutes == 1)) ||
+			(iDateTime.hour == 13 && iDateTime.minutes == 59) ||
+			(iDateTime.hour == 21 && (iDateTime.minutes == 0 || iDateTime.minutes == 1))) {
 			payout=0;
-			return PayoutCancelType::TOOLITTLEMONEY;
+			return PayoutCancelType::BEGIN_EVENING_HOUR;
+		}//if
+
+		// Р•СЃР»Рё РїСЂРѕРґРѕР»Р¶РёС‚РµР»СЊРЅРѕСЃС‚СЊ СЌРєСЃРїРёСЂР°С†РёРё РјРµРЅСЊС€Рµ 3 РјРёРЅСѓС‚ (180 СЃРµРєСѓРЅРґ)
+		// Р’С‹РїР»Р°С‚Р° РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ payout=0
+		// Р’РѕР·РІСЂР°С‚ РєРѕРґР° РїСЂРёС‡РёРЅС‹ РѕС‚СЃСѓС‚СЃС‚РІРёСЏ РІС‹РїР»Р°С‚С‹ PayoutCancelType::BEGINEVENINGHOUR
+		if(duration < 180) {
+			payout=0;
+			return PayoutCancelType::TOO_LITTLE_TIME;
+		}//if
+
+		// Р•СЃР»Рё РїСЂРѕРґРѕР»Р¶РёС‚РµР»СЊРЅРѕСЃС‚СЊ СЌРєСЃРїРёСЂР°С†РёРё Р±РѕР»СЊС€Рµ 500 РјРёРЅСѓС‚ (30000 СЃРµРєСѓРЅРґ)
+		// Р’С‹РїР»Р°С‚Р° РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ payout=0
+		// Р’РѕР·РІСЂР°С‚ РєРѕРґР° РїСЂРёС‡РёРЅС‹ РѕС‚СЃСѓС‚СЃС‚РІРёСЏ РІС‹РїР»Р°С‚С‹ PayoutCancelType::TOOMUCHTIME
+		if(duration > 30000) {
+			payout=0;
+			return PayoutCancelType::TOO_MUCH_TIME;
+		}//if
+
+		if(currency_pair_indx > (int)intrade_bar_currency_pairs.size()) {
+			payout=0;
+			return PayoutCancelType::CURRENCY_PAIR_IS_MISSING;
+		}//if
+
+		if(amount <= 0) {
+			payout = 0.0;
+			return PayoutCancelType::TOO_LITTLE_MONEY;
 		}
-		
-		// Если операция выполнена после 9 января 2019 года
-		if(year>=2019&&month>=1&&day>=9)
-		{
-			// Если счет в долларах и ставка больше 80 долларов или счет в рублях и ставка больше 5000 рублей
-			if((currency_name=="USD"&&amount>=80)||(currency_name=="RUB"&&amount>=5000))
-			{
-				payout=0.85;// Процент выплат составит 85 (0,85)
-			}
-			// Если счет в долларах и ставка меньше 80 долларов или счет в рублях и ставка меньше 5000 рублей
-			else
-			{
-				// Если продолжительность экспирации от 3 до 4 минут
-				if(duration>=180&&duration<240)
-				{
-					payout=0.82; // Процент выплат составит 82 (0,82)
-				}
-				else
-				{
-					// Если продолжительность экспирации от 4 до 500 минут
-					if(duration>=240&&duration<=30000)
-					{
-						payout=0.79; // Процент выплат составит 79 (0,79)
+
+		// Р•СЃР»Рё РѕРїРµСЂР°С†РёСЏ РІС‹РїРѕР»РЅРµРЅР° РїРѕСЃР»Рµ 9 СЏРЅРІР°СЂСЏ 2019 РіРѕРґР°
+		const xtime::timestamp_t TIMESTAMP_09_01_2019 = 1546992000;
+		if(timestamp >= TIMESTAMP_09_01_2019 || is_use_latest_broker_terms) {
+			// Р•СЃР»Рё СЃС‡РµС‚ РІ РґРѕР»Р»Р°СЂР°С… Рё СЃС‚Р°РІРєР° Р±РѕР»СЊС€Рµ 80 РґРѕР»Р»Р°СЂРѕРІ РёР»Рё СЃС‡РµС‚ РІ СЂСѓР±Р»СЏС… Рё СЃС‚Р°РІРєР° Р±РѕР»СЊС€Рµ 5000 СЂСѓР±Р»РµР№
+			if((currency_name == CURRENCY_USD && amount >= 80)||(currency_name == CURRENCY_RUB && amount>=5000)) {
+				payout=0.85;// РџСЂРѕС†РµРЅС‚ РІС‹РїР»Р°С‚ СЃРѕСЃС‚Р°РІРёС‚ 85 (0,85)
+			} else {
+                // Р•СЃР»Рё СЃС‡РµС‚ РІ РґРѕР»Р»Р°СЂР°С… Рё СЃС‚Р°РІРєР° РјРµРЅСЊС€Рµ 80 РґРѕР»Р»Р°СЂРѕРІ РёР»Рё СЃС‡РµС‚ РІ СЂСѓР±Р»СЏС… Рё СЃС‚Р°РІРєР° РјРµРЅСЊС€Рµ 5000 СЂСѓР±Р»РµР№
+
+				// Р•СЃР»Рё РїСЂРѕРґРѕР»Р¶РёС‚РµР»СЊРЅРѕСЃС‚СЊ СЌРєСЃРїРёСЂР°С†РёРё РѕС‚ 3 РґРѕ 4 РјРёРЅСѓС‚
+				if(duration >= 180 && duration < 240) {
+					payout=0.82; // РџСЂРѕС†РµРЅС‚ РІС‹РїР»Р°С‚ СЃРѕСЃС‚Р°РІРёС‚ 82 (0,82)
+				} else {
+					// Р•СЃР»Рё РїСЂРѕРґРѕР»Р¶РёС‚РµР»СЊРЅРѕСЃС‚СЊ СЌРєСЃРїРёСЂР°С†РёРё РѕС‚ 4 РґРѕ 500 РјРёРЅСѓС‚
+					if(duration >= 240 && duration <= 30000) {
+						payout=0.79; // РџСЂРѕС†РµРЅС‚ РІС‹РїР»Р°С‚ СЃРѕСЃС‚Р°РІРёС‚ 79 (0,79)
 					}
 				}
 			}
-		}// if
-		// Если операция выполнена после 9 января 2019 года
-		else
-		{
-			// Если счет в долларах и ставка больше 80 долларов или счет в рублях и ставка больше 5000 рублей
-			if((currency_name=="USD"&&amount>=80)||(currency_name=="RUB"&&amount>=5000))
-			{
-				payout=0.84; // Процент выплат составит 84 (0,84)
-			}
-			// Если счет в долларах и ставка меньше 80 долларов или счет в рублях и ставка меньше 5000 рублей
-			else
-			{
-				// Если продолжительность экспирации от 3 до 4 минут
-				if(duration>=180&&duration<240)
-				{
-					payout=0.8; // Процент выплат составит 80 (0,8)
-				}
-				else
-				{
-				    // Если продолжительность экспирации от 4 до 500 минут
-					if(duration>=240&&duration<=30000)
-					{
-						payout=0.77; // Процент выплат составит 77 (0,77)
+		} else {
+            std::cout << "iDateTime.year " << (int)iDateTime.year << " iDateTime.month " << (int)iDateTime.month << " iDateTime.day " << (int)iDateTime.day << std::endl;
+            // Р•СЃР»Рё РѕРїРµСЂР°С†РёСЏ РІС‹РїРѕР»РЅРµРЅР° РїРѕСЃР»Рµ 9 СЏРЅРІР°СЂСЏ 2019 РіРѕРґР°
+
+			// Р•СЃР»Рё СЃС‡РµС‚ РІ РґРѕР»Р»Р°СЂР°С… Рё СЃС‚Р°РІРєР° Р±РѕР»СЊС€Рµ 80 РґРѕР»Р»Р°СЂРѕРІ РёР»Рё СЃС‡РµС‚ РІ СЂСѓР±Р»СЏС… Рё СЃС‚Р°РІРєР° Р±РѕР»СЊС€Рµ 5000 СЂСѓР±Р»РµР№
+			if((currency_name== CURRENCY_USD && amount >= 80) || (currency_name == CURRENCY_RUB && amount >=5000)) {
+				payout = 0.84; // РџСЂРѕС†РµРЅС‚ РІС‹РїР»Р°С‚ СЃРѕСЃС‚Р°РІРёС‚ 84 (0,84)
+			} else {
+                // Р•СЃР»Рё СЃС‡РµС‚ РІ РґРѕР»Р»Р°СЂР°С… Рё СЃС‚Р°РІРєР° РјРµРЅСЊС€Рµ 80 РґРѕР»Р»Р°СЂРѕРІ РёР»Рё СЃС‡РµС‚ РІ СЂСѓР±Р»СЏС… Рё СЃС‚Р°РІРєР° РјРµРЅСЊС€Рµ 5000 СЂСѓР±Р»РµР№
+
+				// Р•СЃР»Рё РїСЂРѕРґРѕР»Р¶РёС‚РµР»СЊРЅРѕСЃС‚СЊ СЌРєСЃРїРёСЂР°С†РёРё РѕС‚ 3 РґРѕ 4 РјРёРЅСѓС‚
+				if(duration >= 180 && duration < 240) {
+					payout = 0.8; // РџСЂРѕС†РµРЅС‚ РІС‹РїР»Р°С‚ СЃРѕСЃС‚Р°РІРёС‚ 80 (0,8)
+				} else {
+				    // Р•СЃР»Рё РїСЂРѕРґРѕР»Р¶РёС‚РµР»СЊРЅРѕСЃС‚СЊ СЌРєСЃРїРёСЂР°С†РёРё РѕС‚ 4 РґРѕ 500 РјРёРЅСѓС‚
+					if(duration >= 240 && duration <= 30000) {
+						payout = 0.77; // РџСЂРѕС†РµРЅС‚ РІС‹РїР»Р°С‚ СЃРѕСЃС‚Р°РІРёС‚ 77 (0,77)
 					}
 				}
 			}
 		}
-		
-		return 0;
+		return OK;
 	};
-	
-	
-	/** \brief Получить имя валютной пары по ее номеру
 
-	 * \param[in] currency_pair_indx  номер валютной пары из списка валютных пар брокера
-	 * \return имя валютной пары либо пустую строку, если указанный индекс отсутствует в списке валютных пар
-	*/
-	inline std::string IntradeBar::get_currecy_pair_name(const int currency_pair_indx)
-	{
-		// Перебор в цикле всех элементов множества currency_pairs при помощи итератора
-		// currency_pairs.begin() - установка итератора на начало множества
-		// currency_pair_index!=currency_pairs.end() - проверка нахолится ли итератор на последнем элементе множества
-		// ++currency_pair_index - перевод итератора на следующий элемент множества
-		for(auto currency_pair_index=currency_pairs.begin(); currency_pair_index!=currency_pairs.end(); ++currency_pair_index)
-		{
-			if((*currency_pair_index).first==currency_pair_indx) //Если индекс элемента, на котором находится итератор равен искомому
-				// Возврат имени валютной пары, соответствующей этому индексу
-				return (*currency_pair_index).second;
-		}
-		// В это место кода попадаем, если в множестве currency_pairs отсутствует валютная пара с индексом currency_pair_index
-		return std::string();//Возврат пустой строки
+
+	/** \brief РџРѕР»СѓС‡РёС‚СЊ РёРјСЏ РІР°Р»СЋС‚РЅРѕР№ РїР°СЂС‹ РїРѕ РµРµ РЅРѕРјРµСЂСѓ
+	 * \param[in] currency_pair_indx  РЅРѕРјРµСЂ РІР°Р»СЋС‚РЅРѕР№ РїР°СЂС‹ РёР· СЃРїРёСЃРєР° РІР°Р»СЋС‚РЅС‹С… РїР°СЂ Р±СЂРѕРєРµСЂР°
+	 * \return РёРјСЏ РІР°Р»СЋС‚РЅРѕР№ РїР°СЂС‹ Р»РёР±Рѕ РїСѓСЃС‚СѓСЋ СЃС‚СЂРѕРєСѓ, РµСЃР»Рё СѓРєР°Р·Р°РЅРЅС‹Р№ РёРЅРґРµРєСЃ РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ РІ СЃРїРёСЃРєРµ РІР°Р»СЋС‚РЅС‹С… РїР°СЂ
+	 */
+	inline std::string IntradeBar::get_currecy_pair_name(const int &currency_pair_indx) {
+        if(currency_pair_indx < (int)intrade_bar_currency_pairs.size()) return intrade_bar_currency_pairs[currency_pair_indx];
+        return intrade_bar_currency_pairs[currency_pair_indx];
+		return std::string();//Р’РѕР·РІСЂР°С‚ РїСѓСЃС‚РѕР№ СЃС‚СЂРѕРєРё
 	};
-	
-	///Получить список всех валютных пар брокера
-	inline std::vector<std::string> IntradeBar::get_currecy_pair_list()
-	{
-		std::vector<std::string> currency_pair_list; // Вектор, в котором содержатся имена всех валютных пар
-		currency_pair_list.clear(); //Очистка вектора от мусора
-		
-		// Перебор в цикле всех элементов множества currency_pairs при помощи итератора
-		// currency_pairs.begin() - установка итератора на начало множества
-		// currency_pair_index!=currency_pairs.end() - проверка нахолится ли итератор на последнем элементе множества
-		// ++currency_pair_index - перевод итератора на следующий элемент множества
-		for(auto currency_pair_index=currency_pairs.begin(); currency_pair_index!=currency_pairs.end(); ++currency_pair_index)
-		{
-			// В конец вектора currency_pair_list добавляется имя валютной пары, на которой находится итератор
-			currency_pair_list.push_back((*currency_pair_index).second);
-		}
-		return currency_pair_list; //Возврат вектора, содержащего имена всех валютных пар
-	};
-	
-	
-	
+
 }
+
+#endif // PAYOUT_MODEL_INTRADE_BAR_H_INCLUDED
