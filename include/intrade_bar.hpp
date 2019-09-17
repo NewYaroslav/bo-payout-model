@@ -43,6 +43,25 @@ namespace payout_model {
 
     public:
 
+        /** \brief Проверить минуту дня
+         * Данный метод проверяет, разрешает ли брокер торговлю в данное время
+         * \param minute_day минута дня
+         * \return Вернет PayoutCancelType::OK если торговать можно, иначе код ошибки
+         */
+        inline const int check_minute_day(const uint32_t &minute_day) {
+            uint32_t hour = minute_day/xtime::MINUTES_IN_HOUR;
+            uint32_t minutes = minute_day % xtime::MINUTES_IN_HOUR;
+            // Если операция выполнена после 21:00 по Гринвичу
+            if(hour >= 21) return PayoutCancelType::NIGHT_HOURS;
+            // Если операция выполнена после с 14:00 (13:59) до 20:00 по Гринвичу в две первые или последнюю минуту часа
+            if  ((hour == 13 && minutes == 59) ||
+                (hour >= 14 &&
+                (minutes == 59 || minutes == 0 || minutes == 1))) {
+                return PayoutCancelType::BEGIN_EVENING_HOUR;
+            }
+            return PayoutCancelType::OK;
+        }
+
         /** \brief Проверить метку времени
          * Данный метод проверяет, разрешает ли брокер торговлю в данное время
          * \param timestamp Метка времени
