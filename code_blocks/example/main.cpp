@@ -24,5 +24,8 @@ int main()
 
     IntradeBar.get_payout(payout, xtime::get_timestamp(7,5,2019,6), 180, 0, 4000);
     std::cout << "date " << xtime::get_str_date_time(xtime::get_timestamp(7,5,2019,6)) << " payout " << payout << std::endl;
+
+    if(payout_model::intrade_bar_check_minute_day(1300) == payout_model::OK) cout << "check_minute_day 1300" << endl;
+    if(payout_model::intrade_bar_check_minute_day(33) == payout_model::OK) cout << "check_minute_day 33" << endl;
     return 0;
 }

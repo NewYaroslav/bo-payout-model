@@ -36,31 +36,31 @@ namespace payout_model {
         "USDRUB","GBPCAD","GC",
     }; ///< Список доступных валютных пар брокера IntradeBar
 
+    /** \brief Проверить минуту дня
+     * Данный метод проверяет, разрешает ли брокер торговлю в данное время
+     * \param minute_day минута дня
+     * \return Вернет PayoutCancelType::OK если торговать можно, иначе код ошибки
+     */
+    int intrade_bar_check_minute_day(const uint32_t &minute_day) {
+        uint32_t hour = minute_day/xtime::MINUTES_IN_HOUR;
+        uint32_t minutes = minute_day % xtime::MINUTES_IN_HOUR;
+        // Если операция выполнена после 21:00 по Гринвичу
+        if(hour >= 21) return PayoutCancelType::NIGHT_HOURS;
+        // Если операция выполнена после с 14:00 (13:59) до 20:00 по Гринвичу в две первые или последнюю минуту часа
+        if  ((hour == 13 && minutes == 59) ||
+            (hour >= 14 &&
+            (minutes == 59 || minutes == 0 || minutes == 1))) {
+            return PayoutCancelType::BEGIN_EVENING_HOUR;
+        }
+        return PayoutCancelType::OK;
+    }
+
 	class IntradeBar {
     private:
         int currency_name;								    ///< Наименование валюты счета. Как правило, USD или RUB
         bool is_use_latest_broker_terms;
 
     public:
-
-        /** \brief Проверить минуту дня
-         * Данный метод проверяет, разрешает ли брокер торговлю в данное время
-         * \param minute_day минута дня
-         * \return Вернет PayoutCancelType::OK если торговать можно, иначе код ошибки
-         */
-        inline const int check_minute_day(const uint32_t &minute_day) {
-            uint32_t hour = minute_day/xtime::MINUTES_IN_HOUR;
-            uint32_t minutes = minute_day % xtime::MINUTES_IN_HOUR;
-            // Если операция выполнена после 21:00 по Гринвичу
-            if(hour >= 21) return PayoutCancelType::NIGHT_HOURS;
-            // Если операция выполнена после с 14:00 (13:59) до 20:00 по Гринвичу в две первые или последнюю минуту часа
-            if  ((hour == 13 && minutes == 59) ||
-                (hour >= 14 &&
-                (minutes == 59 || minutes == 0 || minutes == 1))) {
-                return PayoutCancelType::BEGIN_EVENING_HOUR;
-            }
-            return PayoutCancelType::OK;
-        }
 
         /** \brief Проверить метку времени
          * Данный метод проверяет, разрешает ли брокер торговлю в данное время
@@ -182,9 +182,8 @@ namespace payout_model {
          * \param user_currency_name Валюта счета, по умолчанию RUB
          * \param is_latest_broker_terms Использовать послдение условия брокера. Этот параметр повышает процент выплат на всем участке истории
          */
-        IntradeBar(const int &user_currency_name = CURRENCY_RUB, const bool is_latest_broker_terms = false) {
-            currency_name = user_currency_name;
-            is_use_latest_broker_terms = is_latest_broker_terms;
+        IntradeBar(const int &user_currency_name = CURRENCY_RUB, const bool is_latest_broker_terms = false) :
+            currency_name(user_currency_name), is_use_latest_broker_terms(is_latest_broker_terms)  {
         }
 
         ~IntradeBar() {}
