@@ -49,7 +49,7 @@ namespace payout_model {
         // Если операция выполнена после с 14:00 (13:59) до 20:00 по Гринвичу в две первые или последнюю минуту часа
         if  ((hour == 13 && minutes == 59) ||
             (hour >= 14 &&
-            (minutes == 59 || minutes == 0 || minutes == 1))) {
+            (minutes == 59 || minutes <= 3))) {
             return PayoutCancelType::BEGIN_EVENING_HOUR;
         }
         return PayoutCancelType::OK;
