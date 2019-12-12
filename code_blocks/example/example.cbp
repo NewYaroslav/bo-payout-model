@@ -42,7 +42,8 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
-		<Unit filename="../../include/intrade_bar.hpp" />
+		<Unit filename="../../include/intrade-bar-payout-model.hpp" />
+		<Unit filename="../../include/payout-model-common.hpp" />
 		<Unit filename="../../lib/xtime_cpp/src/xtime.cpp" />
 		<Unit filename="../../lib/xtime_cpp/src/xtime.hpp" />
 		<Unit filename="main.cpp" />
