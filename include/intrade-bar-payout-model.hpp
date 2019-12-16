@@ -35,6 +35,20 @@ namespace payout_model {
             CURRENCY_USD = 1,       ///< Долларовый счет
         };
 
+        /** \brief Проверить имя валютной пары
+         * \param name Имя валютной пары
+         * \return Вернет true, если указанная валютная пара поддерживается брокером
+         */
+        inline static const bool check_currecy_pair_name(const std::string &name) {
+            auto it = intrade_bar_currency_pairs_index.find(name);
+            if(it == intrade_bar_currency_pairs_index.end()) {
+                return false;
+            }
+            uint32_t index = it->second;
+            if(is_intrade_bar_currency_pairs[index]) return true;
+            return false;
+        }
+
         /** \brief Проверить минуту дня
          * Данный метод проверяет, разрешает ли брокер торговлю в данное время
          * \param minute_day минута дня

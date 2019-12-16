@@ -33,5 +33,7 @@ int main() {
         std::cout << "check timestamp " << xtime::get_str_date_time(xtime::get_timestamp(12,12,2019,0,0,0)) << endl;
 
     std::cout << payout_model::IntradeBar::get_currecy_pair_name(0) << endl;
+    std::cout << "EURUSD: " << payout_model::IntradeBar::check_currecy_pair_name("EURUSD") << endl;
+    std::cout << "GBPCAD: " << payout_model::IntradeBar::check_currecy_pair_name("GBPCAD") << endl;
     return 0;
 }

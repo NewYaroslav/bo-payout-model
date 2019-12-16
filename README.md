@@ -44,6 +44,10 @@ int main() {
 	/* как вариант, можно задать валюту аккаунта и опцию "использовать последние условия брокера"
 	 * payout_model::IntradeBar IntradeBar(payout_model::CURRENCY_USD, true);
 	 */
+	 
+	/* проверить наличие валютной пары у брокера */
+	std::cout << "EURUSD: " << payout_model::IntradeBar::check_currecy_pair_name("EURUSD") << endl;
+    std::cout << "GBPCAD: " << payout_model::IntradeBar::check_currecy_pair_name("GBPCAD") << endl;
 
 	// выплата брокера, от 0.0 до 1.0, где 1.0 - 100% выплата
     double payout = 0.0;
