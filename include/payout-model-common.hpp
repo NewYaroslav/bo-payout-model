@@ -21,6 +21,19 @@ namespace payout_model {
         "GBPCHF","EURNZD","AUDCHF","GBPNZD",
         "GBPCAD","XAUUSD",
     }; ///< Список доступных валютных пар брокера IntradeBar
+
+    static const int INTRADE_BAR_CURRENCY_PAIRS_REAL = 22;  /**< Количество реально используемых торговых символов */
+
+    const std::array<bool, INTRADE_BAR_CURRENCY_PAIRS>
+            is_intrade_bar_currency_pairs = {
+        true,true,false,true,
+        true,true,true,true,
+        true,true,true,true,
+        false,true,true,true,
+        true,true,true,true,
+        true,false,true,true,
+        false,true,
+    }; ///< Список доступных валютных пар брокера IntradeBar
 }
 
 #endif // PAYOUT_MODEL_COMMON_HPP_INCLUDED

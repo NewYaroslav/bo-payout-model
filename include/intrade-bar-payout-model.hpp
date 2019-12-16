@@ -11,7 +11,7 @@ namespace payout_model {
      */
 	class IntradeBar {
     private:
-        int currency_name;              ///< Наименование валюты счета. Как правило, USD или RUB
+        uint32_t currency_name;         ///< Наименование валюты счета. Как правило, USD или RUB
         bool is_use_latest_broker_terms;///< Использовать последние условия брокера
 
     public:
@@ -26,6 +26,7 @@ namespace payout_model {
             CURRENCY_PAIR_IS_MISSING = -6,  ///< Отсутствует валютная пара с указанным индексом
             TOO_LITTLE_MONEY = -7,		    ///< Слишком низкая ставка
             FXCM_MON = -8,                  ///< Нет котировок от FXCM в понедельник в 0 час UTC
+            EXPIRATION_ERROR = -8, 		    ///< Ошибка экспирации
         };
 
         /// Список валют счета
@@ -96,40 +97,29 @@ namespace payout_model {
          * \param[out] payout процент выплат
          * \param[in] timestamp временную метку unix времени (GMT)
          * \param[in] duration длительность опциона в секундах
-         * \param[in] currency_pair_indx  номер валютной пары из списка валютных пар брокера
+         * \param[in] currency_pair_index  номер валютной пары из списка валютных пар брокера
          * \param[in] amount размер ставки бинарного опциона
          * \return состояние выплаты (0 в случае успеха, иначе см. PayoutCancelType)
          */
         inline const int get_payout(
                 double &payout,
-                const xtime::timestamp_t &timestamp,
-                const int &duration,
-                const int &currency_pair_indx,
-                const double &amount) {
-            int time_state = check_timestamp(timestamp);
-            if(time_state != ErrorType::OK) {
-                payout = 0.0;
-                return time_state;
-            }
+                const xtime::timestamp_t timestamp,
+                const uint32_t duration,
+                const uint32_t currency_pair_index,
+                const double amount) {
+            int err = ErrorType::OK;
+            payout = 0.0;
+            if((err = check_timestamp(timestamp)) != ErrorType::OK) return err;
 
             // Если продолжительность экспирации меньше 3 минут (180 секунд)
-            if(duration < 180) {
-                payout = 0.0;
-                return PayoutCancelType::TOO_LITTLE_TIME;
-            }
+            if(duration < 180) return PayoutCancelType::TOO_LITTLE_TIME;
             // Если продолжительность экспирации больше 500 минут (30000 секунд)
-            if(duration > 30000) {
-                payout = 0.0;
-                return PayoutCancelType::TOO_MUCH_TIME;
-            }//if
-            if(currency_pair_indx > (int)intrade_bar_currency_pairs.size()) {
-                payout = 0.0;
+            if(duration > 30000) return PayoutCancelType::TOO_MUCH_TIME;
+
+            if(currency_pair_index > intrade_bar_currency_pairs.size() ||
+                !is_intrade_bar_currency_pairs[currency_pair_index])
                 return PayoutCancelType::CURRENCY_PAIR_IS_MISSING;
-            }//if
-            if(amount <= 0) {
-                payout = 0.0;
-                return PayoutCancelType::TOO_LITTLE_MONEY;
-            }
+            if(amount <= 0) return PayoutCancelType::TOO_LITTLE_MONEY;
             /* Если операция выполнена после 9 января 2019 года */
             const xtime::timestamp_t TIMESTAMP_09_01_2019 = 1546992000;
             if(timestamp >= TIMESTAMP_09_01_2019 || is_use_latest_broker_terms) {
@@ -143,10 +133,10 @@ namespace payout_model {
                     if(duration == 180) {
                         payout = 0.82; // Процент выплат составит 82 (0,82)
                     } else {
-                        // Если продолжительность экспирации от 4 до 500 минут
+                        /* Если продолжительность экспирации от 4 до 500 минут */
                         if(duration >= 240 && duration <= 30000) {
                             payout=0.79; // Процент выплат составит 79 (0,79)
-                        }
+                        } else return PayoutCancelType::EXPIRATION_ERROR;
                     }
                 }
             } else {
@@ -165,7 +155,7 @@ namespace payout_model {
                         // Если продолжительность экспирации от 4 до 500 минут
                         if(duration >= 240 && duration <= 30000) {
                             payout = 0.77; // Процент выплат составит 77 (0,77)
-                        }
+                        } else return PayoutCancelType::EXPIRATION_ERROR;
                     }
                 }
             }
@@ -187,7 +177,7 @@ namespace payout_model {
          * \param is_latest_broker_terms Использовать последние условия брокера.
          * Этот параметр повышает процент выплат на всем участке истории
          */
-        IntradeBar(const int &user_currency_name = CURRENCY_RUB, const bool is_latest_broker_terms = false) :
+        IntradeBar(const uint32_t user_currency_name = CURRENCY_RUB, const bool is_latest_broker_terms = false) :
             currency_name(user_currency_name), is_use_latest_broker_terms(is_latest_broker_terms)  {
         }
 
