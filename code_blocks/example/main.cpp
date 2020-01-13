@@ -15,11 +15,20 @@ int main() {
     IntradeBar.get_payout(payout, xtime::get_timestamp(1,2,2018,12), 180, 0, 4000);
     std::cout << "date " << xtime::get_str_date_time(xtime::get_timestamp(1,2,2018,12)) << " payout " << payout << std::endl;
 
-    IntradeBar.get_payout(payout, xtime::get_timestamp(3,3,2018,6), 180, 0, 4000);
-    std::cout << "date " << xtime::get_str_date_time(xtime::get_timestamp(3,3,2018,6)) << " payout " << payout << std::endl;
+    IntradeBar.get_payout(payout, xtime::get_timestamp(3,3,2018,4,59), 180, 0, 5000);
+    std::cout << "date " << xtime::get_str_date_time(xtime::get_timestamp(3,3,2018,4,59)) << " payout " << payout << std::endl;
+
+    IntradeBar.get_payout(payout, xtime::get_timestamp(3,3,2018,5), 180, 0, 4000);
+    std::cout << "date " << xtime::get_str_date_time(xtime::get_timestamp(3,3,2018,5)) << " payout " << payout << std::endl;
 
     IntradeBar.get_payout(payout, xtime::get_timestamp(5,3,2018,6), 180, 0, 5000);
     std::cout << "date " << xtime::get_str_date_time(xtime::get_timestamp(5,3,2018,6)) << " payout " << payout << std::endl;
+
+    IntradeBar.get_payout(payout, xtime::get_timestamp(5,3,2018,8), 180, 0, 5000);
+    std::cout << "date " << xtime::get_str_date_time(xtime::get_timestamp(5,3,2018,8)) << " payout " << payout << std::endl;
+
+    IntradeBar.get_payout(payout, "EURUSD", xtime::get_timestamp(5,3,2019,9), 180, 5000);
+    std::cout << "date " << xtime::get_str_date_time(xtime::get_timestamp(5,3,2019,9)) << " payout " << payout << std::endl;
 
     std::cout << "err " << IntradeBar.get_payout(payout, xtime::get_timestamp(7,5,2019,6), 180, 0, 4000) << std::endl;
     std::cout << "date " << xtime::get_str_date_time(xtime::get_timestamp(7,5,2019,6)) << " payout " << payout << std::endl;
@@ -28,6 +37,8 @@ int main() {
         std::cout << "check minute day 1300" << endl;
     if(payout_model::IntradeBar::check_minute_day(33) == payout_model::OK)
         std::cout << "check minute day 33" << endl;
+    if(payout_model::IntradeBar::check_minute_day(1260) == payout_model::OK)
+        std::cout << "check minute day 1260" << endl;
     if(payout_model::IntradeBar::check_timestamp(xtime::get_timestamp(12,12,2019,0,0,0))
         == payout_model::OK)
         std::cout << "check timestamp " << xtime::get_str_date_time(xtime::get_timestamp(12,12,2019,0,0,0)) << endl;
