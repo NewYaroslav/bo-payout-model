@@ -155,11 +155,11 @@ namespace payout_model {
             if(weekday == xtime::MON && hour == 0)
                 return PayoutCancelType::FXCM_MON;
             if(hour == 21) return PayoutCancelType::NIGHT_HOURS;
-            if(hour < 5 || hour >= 14) {
+            if(hour <= 5 || hour >= 14) {
                 /* с 1 часа по МСК до 8 утра по МСК процент выполат 60%
                  * с 17 часов по МСК  процент выплат в течении 3 минут в начале часа и конце часа также составляет 60%
                  */
-                if(minute >= 57 || minute <= 3) {
+                if(minute >= 57 || minute <= 2) {
                     payout = 0.6;
                     return ErrorType::OK;
                 }
