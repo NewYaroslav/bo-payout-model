@@ -46,5 +46,11 @@ int main() {
     std::cout << payout_model::IntradeBar::get_currecy_pair_name(0) << endl;
     std::cout << "EURUSD: " << payout_model::IntradeBar::check_currecy_pair_name("EURUSD") << endl;
     std::cout << "GBPCAD: " << payout_model::IntradeBar::check_currecy_pair_name("GBPCAD") << endl;
+
+    double amount = 0.0;
+    int err = IntradeBar.get_amount(amount, payout, "EURUSD", xtime::get_timestamp(4,1,2018,1,4), 180, 96000, 0.6, 0.4);
+    std::cout << "amount: " << amount << " / balance 96000, payout: " << payout << " code: " << err << std::endl;
+    err =  IntradeBar.get_amount(amount, payout, "EURUSD", xtime::get_timestamp(4,1,2018,1,4), 180, 97000, 0.6, 0.4);
+    std::cout << "amount: " << amount << " / balance 97000, payout: " << payout << " code: " << err << std::endl;
     return 0;
 }
