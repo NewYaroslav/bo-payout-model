@@ -237,7 +237,7 @@ namespace payout_model {
             if(weekday == xtime::SAT || weekday == xtime::SUN)  return ErrorType::OK;
             /* пропускаем 0 час по UTC в понедельник */
             if(weekday == xtime::MON && hour == 0) return PayoutCancelType::FXCM_MON;
-            if(hour == 21) return PayoutCancelType::NIGHT_HOURS;
+            if(hour >= 21 || hour < 1) return PayoutCancelType::NIGHT_HOURS;
             if(hour <= 6 || hour >= 14 || (hour == 13 && minute >= 57)) {
                 /* с 1 часа по МСК до 8 утра по МСК процент выполат 60%
                  * с 17 часов по МСК  процент выплат в течении 3 минут в начале часа и конце часа также составляет 60%
