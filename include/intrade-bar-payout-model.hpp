@@ -222,11 +222,15 @@ namespace payout_model {
         /** \brief Получить абсолютный размер ставки и процент выплат
          *
          * Проценты выплат варьируются обычно от 0 до 1.0, где 1.0 соответствует 100% выплате брокера
-         * \param[out] payout процент выплат
+         * \param[out] amount размер ставки бинарного опциона
+		 * \param[out] payout процент выплат
          * \param[in] currency_pair Имя валютной пары
          * \param[in] timestamp временную метку unix времени (GMT)
          * \param[in] duration длительность опциона в секундах
-         * \param[in] amount размер ставки бинарного опциона
+         * \param[in] balance Размер депозита
+		 * \param[in] winrate Винрейт
+		 * \param[in] attenuator Коэффициент ослабления Келли
+		 * \param[in] payout_limiter Ограничитель процента выплат (по умолчанию не используется)
          * \return состояние выплаты (0 в случае успеха, иначе см. PayoutCancelType)
          */
         inline const int get_amount(
@@ -237,7 +241,8 @@ namespace payout_model {
                 const uint32_t duration,
                 const double balance,
                 const double winrate,
-                const double attenuator) {
+                const double attenuator,
+                const double payout_limiter = 1.0) {
             amount = 0;
             payout = 0;
             /* Если продолжительность экспирации меньше 3 минут (180 секунд) */
@@ -280,7 +285,9 @@ namespace payout_model {
             }
             if(duration == 180) {
                 if(winrate <= (1.0 / 1.85)) return PayoutCancelType::TOO_LITTLE_WINRATE;
-                const double high_rate = ((1.85 * winrate - 1.0) / 0.85) * attenuator;
+
+                const double calc_high_payout = std::min(payout_limiter, 0.85);
+                const double high_rate = (((1.0 + calc_high_payout) * winrate - 1.0) / calc_high_payout) * attenuator;
                 const double high_amount = balance * high_rate;
                 if((currency_name == CURRENCY_USD && high_amount >= 80)||
                     (currency_name == CURRENCY_RUB && high_amount >= 5000)) {
@@ -295,7 +302,9 @@ namespace payout_model {
                 }
                 if(winrate <= (1.0 / 1.82)) return PayoutCancelType::TOO_LITTLE_WINRATE;
                 payout = 0.82;
-                const double low_rate = ((1.82 * winrate - 1.0) / 0.82) * attenuator;
+
+                const double calc_low_payout = std::min(payout_limiter, 0.82);
+                const double low_rate = (((1.0 + calc_low_payout) * winrate - 1.0) / calc_low_payout) * attenuator;
                 amount = balance * low_rate;
                 if((currency_name == CURRENCY_USD && amount < 1)||
                 (currency_name == CURRENCY_RUB && amount < 50)) {
@@ -306,7 +315,8 @@ namespace payout_model {
             } else
             if(duration >= 240 && duration <= 30000) {
                 if(winrate <= (1.0 / 1.85)) return PayoutCancelType::TOO_LITTLE_WINRATE;
-                const double high_rate = ((1.85 * winrate - 1.0) / 0.85) * attenuator;
+                const double calc_high_payout = std::min(payout_limiter, 0.85);
+                const double high_rate = (((1.0 + calc_high_payout) * winrate - 1.0) / calc_high_payout) * attenuator;
                 const double high_amount = balance * high_rate;
                 if((currency_name == CURRENCY_USD && high_amount >= 80)||
                     (currency_name == CURRENCY_RUB && high_amount >= 5000)) {
@@ -321,7 +331,8 @@ namespace payout_model {
                 }
                 if(winrate <= (1.0 / 1.79)) return PayoutCancelType::TOO_LITTLE_WINRATE;
                 payout = 0.79;
-                const double low_rate = ((1.79 * winrate - 1.0) / 0.79) * attenuator;
+                const double calc_low_payout = std::min(payout_limiter, 0.79);
+                const double low_rate = (((1.0 + calc_low_payout)* winrate - 1.0) / calc_low_payout) * attenuator;
                 amount = balance * low_rate;
                 if((currency_name == CURRENCY_USD && amount < 1)||
                 (currency_name == CURRENCY_RUB && amount < 50)) {

@@ -55,5 +55,11 @@ int main() {
 
     err =  IntradeBar.get_amount(amount, payout, "EURUSD", xtime::get_timestamp(31,1,2020,20,54), 180, 48390, 0.56, 0.2);
     std::cout << "amount: " << amount << " / balance 48390, payout: " << payout << " code: " << err << std::endl;
+
+    err =  IntradeBar.get_amount(amount, payout, "EURUSD", xtime::get_timestamp(31,1,2020,20,54), 180, 48390, 0.6, 0.2);
+    std::cout << "amount: " << amount << " / balance 48390, payout: " << payout << " code: " << err << std::endl;
+
+    err =  IntradeBar.get_amount(amount, payout, "EURUSD", xtime::get_timestamp(31,1,2020,20,54), 180, 48390, 0.6, 0.2, 0.8);
+    std::cout << "amount: " << amount << " / balance 48390, payout: " << payout << " code: " << err << std::endl;
     return 0;
 }

@@ -55,5 +55,11 @@ int main() {
 
     err =  Grandcapital.get_amount(amount, payout, "EURUSD", xtime::get_timestamp(31,1,2020,20,54), 180, 48390, 0.56, 0.2);
     std::cout << "amount: " << amount << " / balance 48390, payout: " << payout << " code: " << err << std::endl;
+
+    err =  Grandcapital.get_amount(amount, payout, "EURUSD", xtime::get_timestamp(31,1,2020,19,54), 180, 48390, 0.6, 0.2);
+    std::cout << "amount: " << amount << " / balance 48390, payout: " << payout << " code: " << err << std::endl;
+
+    err =  Grandcapital.get_amount(amount, payout, "EURUSD", xtime::get_timestamp(31,1,2020,19,54), 180, 48390, 0.6, 0.2, 0.79);
+    std::cout << "amount: " << amount << " / balance 48390, payout: " << payout << " code: " << err << std::endl;
     return 0;
 }

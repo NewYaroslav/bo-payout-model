@@ -183,11 +183,15 @@ namespace payout_model {
         /** \brief Получить абсолютный размер ставки и процент выплат
          *
          * Проценты выплат варьируются обычно от 0 до 1.0, где 1.0 соответствует 100% выплате брокера
-         * \param[out] payout процент выплат
+         * \param[out] amount размер ставки бинарного опциона
+		 * \param[out] payout процент выплат
          * \param[in] currency_pair Имя валютной пары
          * \param[in] timestamp временную метку unix времени (GMT)
          * \param[in] duration длительность опциона в секундах
-         * \param[in] amount размер ставки бинарного опциона
+         * \param[in] balance Размер депозита
+		 * \param[in] winrate Винрейт
+		 * \param[in] attenuator Коэффициент ослабления Келли
+		 * \param[in] payout_limiter Ограничитель процента выплат (по умолчанию не используется)
          * \return состояние выплаты (0 в случае успеха, иначе см. PayoutCancelType)
          */
         inline const int get_amount(
@@ -198,7 +202,8 @@ namespace payout_model {
                 const uint32_t duration,
                 const double balance,
                 const double winrate,
-                const double attenuator) {
+                const double attenuator,
+                const double payout_limiter = 1.0) {
             amount = 0;
             payout = 0;
             /* Если продолжительность экспирации меньше 1 минуты (60 секунд) */
@@ -224,7 +229,8 @@ namespace payout_model {
             if(hour >= 20) return PayoutCancelType::NIGHT_HOURS;
             payout = grandcapital_currency_pairs_payout[index];
             if(winrate <= (1.0 / (1.0 + payout))) return PayoutCancelType::TOO_LITTLE_WINRATE;
-            const double rate = (((1.0 + payout) * winrate - 1.0) / payout) * attenuator;
+            const double calc_payout = std::min(payout_limiter, payout);
+            const double rate = (((1.0 + calc_payout) * winrate - 1.0) / calc_payout) * attenuator;
             amount = balance * rate;
             if((currency_name == CURRENCY_USD && amount < 1)||
             (currency_name == CURRENCY_RUB && amount < 50)) {
