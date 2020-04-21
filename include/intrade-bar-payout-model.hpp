@@ -273,7 +273,8 @@ namespace payout_model {
                 if(minute >= 57 || minute <= 2) {
                     payout = 0.6;
                     if(winrate <= (1.0 / 1.6)) return PayoutCancelType::TOO_LITTLE_WINRATE;
-                    const double rate = ((1.6 * winrate - 1.0) / 0.6) * attenuator;
+					const double calc_payout = std::min(payout_limiter, 0.6);
+                    const double rate = (((1.0 + calc_payout) * winrate - 1.0) / calc_payout) * attenuator;
                     amount = balance * rate;
                     if((currency_name == CURRENCY_USD && amount < 1)||
                     (currency_name == CURRENCY_RUB && amount < 50)) {
