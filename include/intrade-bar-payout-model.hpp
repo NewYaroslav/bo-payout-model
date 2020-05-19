@@ -231,6 +231,7 @@ namespace payout_model {
 		 * \param[in] winrate Винрейт
 		 * \param[in] attenuator Коэффициент ослабления Келли
 		 * \param[in] payout_limiter Ограничитель процента выплат (по умолчанию не используется)
+		 * \param[in] winrate_limiter Ограничитель винрейта (по умолчанию не используется)
          * \return состояние выплаты (0 в случае успеха, иначе см. PayoutCancelType)
          */
         inline const int get_amount(
@@ -242,7 +243,8 @@ namespace payout_model {
                 const double balance,
                 const double winrate,
                 const double attenuator,
-                const double payout_limiter = 1.0) {
+                const double payout_limiter = 1.0,
+                const double winrate_limiter = 1.0) {
             amount = 0;
             payout = 0;
             /* Если продолжительность экспирации меньше 3 минут (180 секунд) */
@@ -274,7 +276,9 @@ namespace payout_model {
                     payout = 0.6;
                     if(winrate <= (1.0 / 1.6)) return PayoutCancelType::TOO_LITTLE_WINRATE;
 					const double calc_payout = std::min(payout_limiter, 0.6);
-                    const double rate = (((1.0 + calc_payout) * winrate - 1.0) / calc_payout) * attenuator;
+					const double calc_winrate = std::min(winrate_limiter, winrate);
+					if(calc_winrate <= (1.0 / 1.6)) return PayoutCancelType::TOO_LITTLE_WINRATE;
+                    const double rate = (((1.0 + calc_payout) * calc_winrate - 1.0) / calc_payout) * attenuator;
                     amount = balance * rate;
                     if((currency_name == CURRENCY_USD && amount < 1)||
                     (currency_name == CURRENCY_RUB && amount < 50)) {
@@ -288,7 +292,11 @@ namespace payout_model {
                 if(winrate <= (1.0 / 1.85)) return PayoutCancelType::TOO_LITTLE_WINRATE;
 
                 const double calc_high_payout = std::min(payout_limiter, 0.85);
-                const double high_rate = (((1.0 + calc_high_payout) * winrate - 1.0) / calc_high_payout) * attenuator;
+                const double calc_winrate = std::min(winrate_limiter, winrate);
+
+                if(calc_winrate <= (1.0 / 1.85)) return PayoutCancelType::TOO_LITTLE_WINRATE;
+
+                const double high_rate = (((1.0 + calc_high_payout) * calc_winrate - 1.0) / calc_high_payout) * attenuator;
                 const double high_amount = balance * high_rate;
                 if((currency_name == CURRENCY_USD && high_amount >= 80)||
                     (currency_name == CURRENCY_RUB && high_amount >= 5000)) {
@@ -302,10 +310,11 @@ namespace payout_model {
                     return ErrorType::OK;
                 }
                 if(winrate <= (1.0 / 1.82)) return PayoutCancelType::TOO_LITTLE_WINRATE;
+                if(calc_winrate <= (1.0 / 1.82)) return PayoutCancelType::TOO_LITTLE_WINRATE;
                 payout = 0.82;
 
                 const double calc_low_payout = std::min(payout_limiter, 0.82);
-                const double low_rate = (((1.0 + calc_low_payout) * winrate - 1.0) / calc_low_payout) * attenuator;
+                const double low_rate = (((1.0 + calc_low_payout) * calc_winrate - 1.0) / calc_low_payout) * attenuator;
                 amount = balance * low_rate;
                 if((currency_name == CURRENCY_USD && amount < 1)||
                 (currency_name == CURRENCY_RUB && amount < 50)) {
@@ -316,8 +325,10 @@ namespace payout_model {
             } else
             if(duration >= 240 && duration <= 30000) {
                 if(winrate <= (1.0 / 1.85)) return PayoutCancelType::TOO_LITTLE_WINRATE;
+                const double calc_winrate = std::min(winrate_limiter, winrate);
+                if(calc_winrate <= (1.0 / 1.82)) return PayoutCancelType::TOO_LITTLE_WINRATE;
                 const double calc_high_payout = std::min(payout_limiter, 0.85);
-                const double high_rate = (((1.0 + calc_high_payout) * winrate - 1.0) / calc_high_payout) * attenuator;
+                const double high_rate = (((1.0 + calc_high_payout) * calc_winrate - 1.0) / calc_high_payout) * attenuator;
                 const double high_amount = balance * high_rate;
                 if((currency_name == CURRENCY_USD && high_amount >= 80)||
                     (currency_name == CURRENCY_RUB && high_amount >= 5000)) {
@@ -332,8 +343,10 @@ namespace payout_model {
                 }
                 if(winrate <= (1.0 / 1.79)) return PayoutCancelType::TOO_LITTLE_WINRATE;
                 payout = 0.79;
+                //const double calc_winrate = std::min(winrate_limiter, winrate);
+                if(calc_winrate <= (1.0 / 1.82)) return PayoutCancelType::TOO_LITTLE_WINRATE;
                 const double calc_low_payout = std::min(payout_limiter, 0.79);
-                const double low_rate = (((1.0 + calc_low_payout)* winrate - 1.0) / calc_low_payout) * attenuator;
+                const double low_rate = (((1.0 + calc_low_payout)* calc_winrate - 1.0) / calc_low_payout) * attenuator;
                 amount = balance * low_rate;
                 if((currency_name == CURRENCY_USD && amount < 1)||
                 (currency_name == CURRENCY_RUB && amount < 50)) {

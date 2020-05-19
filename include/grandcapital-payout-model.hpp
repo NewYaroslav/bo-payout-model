@@ -192,6 +192,7 @@ namespace payout_model {
 		 * \param[in] winrate Винрейт
 		 * \param[in] attenuator Коэффициент ослабления Келли
 		 * \param[in] payout_limiter Ограничитель процента выплат (по умолчанию не используется)
+		 * \param[in] winrate_limiter Ограничитель винрейта (по умолчанию не используется)
          * \return состояние выплаты (0 в случае успеха, иначе см. PayoutCancelType)
          */
         inline const int get_amount(
@@ -203,7 +204,8 @@ namespace payout_model {
                 const double balance,
                 const double winrate,
                 const double attenuator,
-                const double payout_limiter = 1.0) {
+                const double payout_limiter = 1.0,
+                const double winrate_limiter = 1.0) {
             amount = 0;
             payout = 0;
             /* Если продолжительность экспирации меньше 1 минуты (60 секунд) */
@@ -230,7 +232,9 @@ namespace payout_model {
             payout = grandcapital_currency_pairs_payout[index];
             if(winrate <= (1.0 / (1.0 + payout))) return PayoutCancelType::TOO_LITTLE_WINRATE;
             const double calc_payout = std::min(payout_limiter, payout);
-            const double rate = (((1.0 + calc_payout) * winrate - 1.0) / calc_payout) * attenuator;
+            const double calc_winrate = std::min(winrate_limiter, winrate);
+            if(calc_winrate <= (1.0 / (1.0 + payout))) return PayoutCancelType::TOO_LITTLE_WINRATE;
+            const double rate = (((1.0 + calc_payout) * calc_winrate - 1.0) / calc_payout) * attenuator;
             amount = balance * rate;
             if((currency_name == CURRENCY_USD && amount < 1)||
             (currency_name == CURRENCY_RUB && amount < 50)) {
