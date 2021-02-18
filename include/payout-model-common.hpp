@@ -29,6 +29,7 @@
 #include <map>
 
 namespace payout_model {
+
     /// Список типов причин отсутствия выплат
     enum ErrorType {
         OK = 0, ///< Ошибки нет
@@ -98,7 +99,7 @@ namespace payout_model {
         false,true,true,true,
         true,true,true,true,
         true,false,true,true,
-        false,true,
+        false,false,
     }; ///< Список доступных валютных пар брокера IntradeBar
 
     const std::array<bool, GRANDCAPITAL_CURRENCY_PAIRS>
