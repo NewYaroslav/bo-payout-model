@@ -36,6 +36,15 @@ int main() {
     IntradeBar.get_payout(payout, "EURUSD", xtime::get_timestamp(5,3,2019,20,58), 180, 5000);
     std::cout << "date " << xtime::get_str_date_time(xtime::get_timestamp(5,3,2019,20,58)) << " payout " << payout << std::endl;
 
+    std::cout << IntradeBar.get_payout(payout, "EURUSD", xtime::get_timestamp(18,2,2021,20,38), 60, 5000) << std::endl;
+    std::cout << "exp 60 date " << xtime::get_str_date_time(xtime::get_timestamp(18,2,2021,20,38)) << " payout " << payout << std::endl;
+
+    std::cout << IntradeBar.get_payout(payout, "EURUSD", xtime::get_timestamp(18,2,2021,20,38), 60, 4000) << std::endl;
+    std::cout << "exp 60 date " << xtime::get_str_date_time(xtime::get_timestamp(18,2,2021,20,38)) << " payout " << payout << std::endl;
+
+    std::cout << IntradeBar.get_payout(payout, "NZDUSD", xtime::get_timestamp(18,2,2021,20,38), 60, 5000) << std::endl;
+    std::cout << "exp 60 date " << xtime::get_str_date_time(xtime::get_timestamp(18,2,2021,20,38)) << " payout " << payout << std::endl;
+
     std::cout << "err " << IntradeBar.get_payout(payout, xtime::get_timestamp(7,5,2019,6), 180, 0, 4000) << std::endl;
 
     std::cout << "date " << xtime::get_str_date_time(xtime::get_timestamp(7,5,2019,6)) << " payout " << payout << std::endl;

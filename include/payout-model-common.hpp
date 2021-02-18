@@ -102,6 +102,22 @@ namespace payout_model {
         false,false,
     }; ///< Список доступных валютных пар брокера IntradeBar
 
+    /* AUD/JPY, AUD/USD, EUR/AUD, EUR/CAD,
+     * EUR/CHF, EUR/GBP, EUR/JPY, EUR/USD,
+     * GBP/AUD, GBP/JPY, GBP/USD, USD/CAD,
+     * USD/CHF, USD/JPY
+     */
+    const std::array<bool, INTRADE_BAR_CURRENCY_PAIRS>
+            is_intrade_bar_currency_pairs_1m_exp = {
+        true,true,true,true,
+        true,true,true,false,
+        true,true,true,true,
+        false,true,false,false,
+        false,false,true,true,
+        false,false,false,false,
+        false,false,
+    }; ///< Список доступных для торговли экспирацией 1 мин. валютных пар брокера IntradeBar
+
     const std::array<bool, GRANDCAPITAL_CURRENCY_PAIRS>
             is_grandcapital_currency_pairs = {
         true,true,true,true,

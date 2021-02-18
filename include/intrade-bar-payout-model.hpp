@@ -151,8 +151,12 @@ namespace payout_model {
             if ((timestamp + duration) > last_time)
                 return PayoutCancelType::EXIT_OVER_END_DAY;
 
-            /* Если продолжительность экспирации меньше 3 минут (180 секунд) */
-            if (duration < 180) return PayoutCancelType::TOO_LITTLE_TIME;
+            /* Если продолжительность экспирации меньше 3 минут (180 секунд) или иногда 60 сек. */
+            if(duration == 60 && !is_intrade_bar_currency_pairs_1m_exp[currency_pair_index])
+                return PayoutCancelType::TOO_LITTLE_TIME;
+            else
+            if(duration < 180 && duration != 60)
+                return PayoutCancelType::TOO_LITTLE_TIME;
 
             /* Если продолжительность экспирации больше 500 минут (30000 секунд) */
             if (duration > 30000) return PayoutCancelType::TOO_MUCH_TIME;
@@ -204,9 +208,23 @@ namespace payout_model {
             /* Если счет в долларах и ставка больше 80 долларов или счет в рублях и ставка больше THRESHOLD_AMOUNT_RUB рублей */
             if((currency_name == CURRENCY_USD && amount >= THRESHOLD_AMOUNT_USD)||
                 (currency_name == CURRENCY_RUB && amount >= THRESHOLD_AMOUNT_RUB)) {
-                payout = 0.85; // Процент выплат составит 85 (0,85)
+                if(duration == 60) {
+                    /* Если продолжительность экспирации 1 минута
+                     * Процент выплат составит 63 (0,63)
+                     */
+                    payout = 0.63;
+                } else {
+                    payout = 0.85; // Процент выплат составит 85 (0,85)
+                }
             } else {
                 /* Если счет в долларах и ставка меньше 80 долларов или счет в рублях и ставка меньше THRESHOLD_AMOUNT_RUB рублей */
+
+                if(duration == 60) {
+                    /* Если продолжительность экспирации 1 минута
+                     * Процент выплат составит 60 (0,6)
+                     */
+                    payout = 0.6;
+                } else
                 if(duration == 180) {
                     /* Если продолжительность экспирации 3 минуты
                      * Процент выплат составит 82 (0,82)
@@ -283,8 +301,6 @@ namespace payout_model {
             if ((timestamp + duration) > last_time)
                 return PayoutCancelType::EXIT_OVER_END_DAY;
 
-            /* Если продолжительность экспирации меньше 3 минут (180 секунд) */
-            if(duration < 180) return PayoutCancelType::TOO_LITTLE_TIME;
             /* Если продолжительность экспирации больше 500 минут (30000 секунд) */
             if(duration > 30000) return PayoutCancelType::TOO_MUCH_TIME;
 
@@ -296,19 +312,28 @@ namespace payout_model {
             uint32_t index = it->second;
             if(!is_intrade_bar_currency_pairs[index]) return PayoutCancelType::CURRENCY_PAIR_IS_MISSING;
 
+            /* Если продолжительность экспирации меньше 3 минут (180 секунд) или иногда 60 сек. */
+            if(duration == 60 && !is_intrade_bar_currency_pairs_1m_exp[index])
+                return PayoutCancelType::TOO_LITTLE_TIME;
+            else
+            if(duration < 180 && duration != 60)
+                return PayoutCancelType::TOO_LITTLE_TIME;
+
             const uint32_t hour = xtime::get_hour_day(timestamp);
             const uint32_t minute = xtime::get_minute_hour(timestamp);
             const uint32_t weekday = xtime::get_weekday(timestamp);
+
             /* пропускаем выходные дни */
             if(weekday == xtime::SAT || weekday == xtime::SUN)  return ErrorType::OK;
             /* пропускаем 0 час по UTC в понедельник */
             if(weekday == xtime::MON && hour == 0) return PayoutCancelType::FXCM_MON;
             if(hour >= 21 || hour < 1) return PayoutCancelType::NIGHT_HOURS;
-            if(hour <= 6 || hour >= 14 || (hour == 13 && minute >= 57)) {
-                /* с 1 часа по МСК до 8 утра по МСК процент выполат 60%
-                 * с 17 часов по МСК  процент выплат в течении 3 минут в начале часа и конце часа также составляет 60%
+            if(hour <= 6 || hour >= 14 || (hour == 13 && minute >= 57) || duration == 60) {
+                /* с 1 часа по МСК до 8 утра по МСК процент выполат 60% - 63%
+                 * с 17 часов по МСК  процент выплат в течении 3 минут в начале часа и конце часа также составляет 60% - 63%
+                 * для экспирации 1 минута выплата 60% - 63%
                  */
-                if(minute >= 57 || minute <= 2) {
+                if (minute >= 57 || minute <= 2 || duration == 60) {
                     payout = 0.6;
                     if(winrate <= (1.0 / 1.6)) return PayoutCancelType::TOO_LITTLE_WINRATE;
 					const double calc_payout = std::min(payout_limiter, 0.6);
