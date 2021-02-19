@@ -59,13 +59,12 @@ namespace payout_model {
             CURRENCY_USD = 1,       ///< Долларовый счет
         };
 
-        const double THRESHOLD_AMOUNT_RUB = 5000;
-        const double THRESHOLD_AMOUNT_USD = 80;
-        const double MIN_AMOUNT_RUB = 50;
-        const double MIN_AMOUNT_USD = 1;
-        const double MAX_AMOUNT_RUB = 25000;
-        const double MAX_AMOUNT_USD = 500;
-
+        constexpr static const double THRESHOLD_AMOUNT_RUB = 5000.0d;
+        constexpr static const double THRESHOLD_AMOUNT_USD = 80.0d;
+        constexpr static const double MIN_AMOUNT_RUB = 50.0d;
+        constexpr static const double MIN_AMOUNT_USD = 1.0d;
+        constexpr static const double MAX_AMOUNT_RUB = 25000.0d;
+        constexpr static const double MAX_AMOUNT_USD = 500.0d;
 
         /** \brief Проверить имя валютной пары
          * \param currency_pair Имя валютной пары
